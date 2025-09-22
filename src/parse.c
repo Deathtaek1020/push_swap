@@ -26,12 +26,31 @@ static int	has_duplicate(t_node *a, int v)
 	return (0);
 }
 
+static int	add_token(const char *tok, t_node **a)
+{
+	long	val;
+	
+	if (!strict_atol(tok, &val))
+		return (0);
+	if (val < (long)INT_MIN || val > (long)INT_MAX)
+		return (0);
+	if (has_duplicate(*a, (int)val))
+		return (0);
+	{
+		t_node	*n;
+
+		n = node_new((int)val);
+		if (!n)
+			return (0);
+		stack_add_back(a, n);
+	}
+	return (1);
+}
+
 static int	process_arg(char *arg, t_node **a)
 {
 	char	**toks;
 	int	i;
-	long	val;
-	t_node	*n;
 
 	toks = ft_split(arg, ' ');
 	if (!toks)
@@ -39,16 +58,11 @@ static int	process_arg(char *arg, t_node **a)
 	i = 0;
 	while (toks[i])
 	{
-		if (!strict_atol(toks[i], &val))
-			return (free_tokens(toks), 0);
-		if (val < (long)INT_MIN || val > (long)INT_MAX)
-			return (free_tokens(toks), 0);
-		if (has_duplicate(*a, (int)val))
-			return (free_tokens(toks), 0);
-		n = node_new((int)val);
-		if (!n)
-			return (free_tokens(toks), 0);
-		stack_add_back(a, n);
+		if (!add_token(toks[i], a))
+		{
+			free_tokens(toks);
+			return (0);
+		}
 		i++;
 	}
 	free_tokens(toks);
